@@ -9,6 +9,12 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@tensorflow/tfjs": "^4.22.0",
+    "@tensorflow/tfjs-tflite": "^0.0.1-alpha.10",
+    "dexie": "^4.4.4",
+    "dexie-react-hooks": "^4.4.0",
+    "jszip": "^3.10.1",
+    "lucide-react": "^1.23.0",
     "next": "16.2.10",
     "react": "19.2.4",
     "react-dom": "19.2.4"
