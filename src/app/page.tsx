@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { loadCbZFile, ComicBook } from '@/lib/comic';
 import type { Panel } from '@/lib/detector';
-import { UploadCloud, ChevronRight, ChevronLeft, Loader2, BookOpen, MonitorSmartphone, Columns, AlignVerticalJustify, Settings } from 'lucide-react';
+import { UploadCloud, ChevronRight, ChevronLeft, Loader2, BookOpen, MonitorSmartphone, Columns, Rows3, Settings } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 type LayoutMode = 'panel' | 'horizontal' | 'vertical';
@@ -151,7 +151,7 @@ export default function Home() {
                 <Columns className="w-4 h-4" />
               </button>
               <button onClick={() => setLayoutMode('vertical')} className={`p-2 rounded ${layoutMode === 'vertical' ? 'bg-rose-600' : 'hover:bg-stone-800'}`} title="Vertical Scroll">
-                <AlignVerticalJustify className="w-4 h-4" />
+                <Rows3 className="w-4 h-4" />
               </button>
             </div>
           )}
