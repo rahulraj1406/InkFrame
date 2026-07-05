@@ -1,5 +1,7 @@
 import type { NextConfig } from "next";
 
+import path from 'path';
+
 const nextConfig: NextConfig = {
   webpack: (config, { webpack }) => {
     config.resolve.fallback = {
@@ -8,9 +10,10 @@ const nextConfig: NextConfig = {
       crypto: false,
     };
     config.plugins.push(
-      new webpack.IgnorePlugin({
-        resourceRegExp: /tflite_web_api_client/,
-      })
+      new webpack.NormalModuleReplacementPlugin(
+        /tflite_web_api_client/,
+        path.resolve(__dirname, 'src/lib/empty-stub.js')
+      )
     );
     return config;
   },
