@@ -39,13 +39,11 @@ export default function Home() {
       try {
         const { detectPanels } = await import('@/lib/detector');
         const result = await detectPanels(imgRef.current);
-        // Fallback to full page if no panels detected
-        if (result.panels.length === 0) {
-           setPanels([{ l: 0, t: 0, r: 1, b: 1 }]);
-        } else {
-           setPanels(result.panels);
-        }
-        setCurrentPanelIdx(-1); // Start viewing full page
+        const parsedPanels = result.panels.length === 0 ? [{ l: 0, t: 0, r: 1, b: 1 }] : result.panels;
+        setPanels(parsedPanels);
+        
+        // If we navigated backwards, start at the last panel. Otherwise, start at the first.
+        setCurrentPanelIdx(prev => (prev === -2 ? parsedPanels.length - 1 : 0));
       } catch (err) {
         console.error('Detection failed', err);
         setPanels([{ l: 0, t: 0, r: 1, b: 1 }]);
@@ -74,7 +72,7 @@ export default function Home() {
       const book = await loadCbZFile(file);
       setComic(book);
       setCurrentPageIdx(0);
-      setCurrentPanelIdx(-1);
+      setCurrentPanelIdx(0);
     } catch (err) {
       console.error(err);
       setStatusText('Failed to parse CBZ file.');
@@ -95,36 +93,37 @@ export default function Home() {
 
   const prevStep = () => {
     if (!comic) return;
-    if (currentPanelIdx > -1) {
+    if (currentPanelIdx > 0) {
       // Step back panel
       setCurrentPanelIdx(prev => prev - 1);
     } else if (currentPageIdx > 0) {
-      // Step back page
+      // Step back page, and flag to start at the last panel
+      setCurrentPanelIdx(-2);
       setCurrentPageIdx(prev => prev - 1);
     }
   };
 
   // Calculate viewport styles based on current panel
   const getViewportStyle = () => {
-    if (currentPanelIdx === -1 || panels.length === 0) {
-      return { transform: 'scale(1)', transformOrigin: 'top left' };
+    if (currentPanelIdx < 0 || panels.length === 0) {
+      return { transform: 'scale(1) translate(0%, 0%)', transformOrigin: 'center' };
     }
     
     const panel = panels[currentPanelIdx];
     const width = panel.r - panel.l;
     const height = panel.b - panel.t;
     
-    // Zoom to fit the panel horizontally or vertically
-    const scale = Math.min(1 / width, 1 / height) * 0.95; // 95% to leave some margin
+    // Zoom tighter for depth effect
+    const scale = Math.min(1 / width, 1 / height) * 1.05;
     
     // Calculate center of panel
     const cx = (panel.l + panel.r) / 2;
     const cy = (panel.t + panel.b) / 2;
 
     return {
-      transform: `scale(${scale}) translate(${-cx * 100}%, ${-cy * 100}%)`,
-      transformOrigin: '0 0',
-      transition: 'transform 0.4s cubic-bezier(0.2, 0, 0, 1)'
+      transform: `scale(${scale}) translate(${(0.5 - cx) * 100}%, ${(0.5 - cy) * 100}%)`,
+      transformOrigin: 'center',
+      transition: 'transform 0.5s cubic-bezier(0.2, 0, 0, 1)'
     };
   };
 
