@@ -37,8 +37,15 @@ let model: tflite.TFLiteModel | null = null;
 
 export async function initDetector() {
   if (model) return;
-  // Initialize tflite backend. Must ensure WebAssembly backend is loaded if needed.
-  model = await tflite.loadTFLiteModel('/manga_panel_detector_int8.tflite');
+  // Point the WASM loader at the runtime assets copied from
+  // node_modules/@tensorflow/tfjs-tflite/wasm/ into public/tflite-wasm/.
+  // Without this, the library falls back to locating them relative to the
+  // bundled script's own URL, which fails inside a webpack chunk.
+  tflite.setWasmPath('/tflite-wasm/');
+  // numThreads: 1 works around a long-standing tfjs-tflite bug where its
+  // default multi-threaded WASM setup hangs predict() indefinitely
+  // (see tensorflow/tfjs#7055, #6094) instead of throwing or completing.
+  model = await tflite.loadTFLiteModel('/manga_panel_detector_int8.tflite', { numThreads: 1 });
   console.log('TFLite model loaded', model);
 }
 
@@ -78,9 +85,9 @@ export async function detectPanels(imgElement: HTMLImageElement): Promise<Detect
   // Convert canvas to tensor
   let inputTensor = tf.browser.fromPixels(canvas);
   inputTensor = inputTensor.expandDims(0); // [1, 640, 640, 3]
-  
+
   // Convert to INT8 if the model expects it, but tfjs-tflite handles normalization automatically for float models.
-  // Assuming the int8 model accepts float32 or int8 input depending on metadata. 
+  // Assuming the int8 model accepts float32 or int8 input depending on metadata.
   // We'll pass it as int32 and cast to int8/float depending on model input requirements.
   const inputInfo = model.inputs[0];
   if (inputInfo.dtype === 'int32') {
@@ -92,7 +99,7 @@ export async function detectPanels(imgElement: HTMLImageElement): Promise<Detect
 
   // Run inference
   const outputResult = model.predict(inputTensor as any);
-  const outputTensor = (Array.isArray(outputResult) ? outputResult[0] : 
+  const outputTensor = (Array.isArray(outputResult) ? outputResult[0] :
                        (outputResult instanceof tf.Tensor ? outputResult : Object.values(outputResult as any)[0])) as tf.Tensor;
   const raw = await outputTensor.data();
   const shape = outputTensor.shape; // e.g. [1, 6, 8400] or [1, 8400, 6]
