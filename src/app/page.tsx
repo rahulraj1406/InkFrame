@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { loadCbZFile, ComicBook, ComicPage } from '@/lib/comic';
-import { detectPanels, initDetector, Panel } from '@/lib/detector';
+import type { Panel } from '@/lib/detector';
 import { UploadCloud, ChevronRight, ChevronLeft, Loader2, BookOpen } from 'lucide-react';
 
 export default function Home() {
@@ -16,13 +16,15 @@ export default function Home() {
   const imgRef = useRef<HTMLImageElement>(null);
 
   useEffect(() => {
-    // Load detector on mount
+    // Load detector on mount dynamically to avoid SSR issues
     setStatusText('Loading AI Model...');
-    initDetector().then(() => {
-      setStatusText('Ready. Upload a CBZ file.');
-    }).catch(e => {
-      console.error(e);
-      setStatusText('Failed to load AI Model.');
+    import('@/lib/detector').then(module => {
+      module.initDetector().then(() => {
+        setStatusText('Ready. Upload a CBZ file.');
+      }).catch(e => {
+        console.error(e);
+        setStatusText('Failed to load AI Model.');
+      });
     });
   }, []);
 
@@ -35,6 +37,7 @@ export default function Home() {
       setLoading(true);
       setStatusText('Detecting panels...');
       try {
+        const { detectPanels } = await import('@/lib/detector');
         const result = await detectPanels(imgRef.current);
         // Fallback to full page if no panels detected
         if (result.panels.length === 0) {

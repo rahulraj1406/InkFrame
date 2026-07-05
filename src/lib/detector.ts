@@ -89,7 +89,9 @@ export async function detectPanels(imgElement: HTMLImageElement): Promise<Detect
   }
 
   // Run inference
-  const outputTensor = model.predict(inputTensor) as tf.Tensor;
+  const outputResult = model.predict(inputTensor as any);
+  const outputTensor = (Array.isArray(outputResult) ? outputResult[0] : 
+                       (outputResult instanceof tf.Tensor ? outputResult : Object.values(outputResult as any)[0])) as tf.Tensor;
   const raw = await outputTensor.data();
   const shape = outputTensor.shape; // e.g. [1, 6, 8400] or [1, 8400, 6]
 
