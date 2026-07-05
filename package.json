@@ -11,8 +11,10 @@
   "dependencies": {
     "@tensorflow/tfjs": "^4.22.0",
     "@tensorflow/tfjs-tflite": "^0.0.1-alpha.10",
+    "@use-gesture/react": "^10.3.1",
     "dexie": "^4.4.4",
     "dexie-react-hooks": "^4.4.0",
+    "framer-motion": "^12.42.2",
     "jszip": "^3.10.1",
     "lucide-react": "^1.23.0",
     "next": "16.2.10",

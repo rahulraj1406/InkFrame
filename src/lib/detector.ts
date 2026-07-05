@@ -1,5 +1,7 @@
 import * as tflite from '@tensorflow/tfjs-tflite';
 import * as tf from '@tensorflow/tfjs';
+import { orderPanels } from './ordering';
+import { planPanels } from './planner';
 
 export interface Panel {
   l: number;
@@ -98,7 +100,15 @@ export async function detectPanels(imgElement: HTMLImageElement): Promise<Detect
   inputTensor.dispose();
   outputTensor.dispose();
 
-  return decodeYoloOutput(raw, shape, lb, pageW, pageH);
+  const result = decodeYoloOutput(raw, shape, lb, pageW, pageH);
+  
+  // Apply advanced ordering and planning (merging/dividing)
+  const isRTL = false; // Default reading direction
+  const orderedPanels = orderPanels(result.panels, isRTL);
+  const plannedPanels = planPanels(orderedPanels, result.bubbles, pageW, pageH, isRTL);
+  
+  result.panels = plannedPanels;
+  return result;
 }
 
 function decodeYoloOutput(raw: Float32Array | Int32Array | Uint8Array, shape: number[], lb: Letterbox, pageW: number, pageH: number): DetectResult {
